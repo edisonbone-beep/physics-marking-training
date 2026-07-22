@@ -1104,7 +1104,7 @@ var PAPERS = {
     "category": "IG",
     "subject": "0625 Physics",
     "paper": "Paper 61",
-    "fullMark": 80,
+    "fullMark": 40,
     "msImages": [
       "img/ig_p61_ms_1.jpg",
       "img/ig_p61_ms_2.jpg",
@@ -2004,7 +2004,7 @@ var PAPERS = {
     "category": "AL",
     "subject": "9702 Physics",
     "paper": "Paper 31",
-    "fullMark": 30,
+    "fullMark": 40,
     "msImages": [
       "img/al2_p31_ms_1.jpg",
       "img/al2_p31_ms_2.jpg",
@@ -2515,7 +2515,7 @@ var PAPERS = {
     "category": "AL",
     "subject": "9702 Physics",
     "paper": "Paper 51",
-    "fullMark": 30,
+    "fullMark": 40,
     "msImages": [
       "img/al2_p51_ms_1.jpg",
       "img/al2_p51_ms_2.jpg",
