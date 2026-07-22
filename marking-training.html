@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics Marking Training</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+
+/* LOGIN PAGE */
+.login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.login-box { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center; min-width: 360px; }
+.login-box h1 { font-size: 28px; margin-bottom: 8px; color: #333; }
+.login-box p { color: #666; margin-bottom: 24px; }
+.login-box input { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.2s; }
+.login-box input:focus { border-color: #667eea; }
+.login-box button { margin-top: 16px; width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.login-box button:hover { background: #5a6fd6; }
+
+/* HEADER */
+.header { background: #fff; padding: 12px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header h2 { font-size: 18px; color: #333; }
+.header .timer { font-size: 16px; font-weight: 600; color: #e74c3c; background: #ffeaea; padding: 6px 14px; border-radius: 20px; }
+.header .user-info { font-size: 14px; color: #666; }
+.header .back-btn { background: #f0f0f0; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.header .back-btn:hover { background: #e0e0e0; }
+
+/* SELECTION PAGE */
+.selection-page { padding: 24px; max-width: 1200px; margin: 0 auto; }
+.selection-page h2 { font-size: 24px; margin-bottom: 20px; }
+.category-section { margin-bottom: 32px; }
+.category-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; padding: 8px 16px; border-radius: 8px; }
+.category-title.ig { background: #e8f5e9; color: #2e7d32; }
+.category-title.al { background: #e3f2fd; color: #1565c0; }
+.papers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.paper-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.paper-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+.paper-card h3 { font-size: 16px; color: #333; margin-bottom: 4px; }
+.paper-card .paper-sub { font-size: 13px; color: #888; margin-bottom: 12px; }
+.script-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.script-btn { padding: 6px 14px; border: 2px solid #667eea; border-radius: 6px; background: white; color: #667eea; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.script-btn:hover { background: #667eea; color: white; }
+.script-btn.done { border-color: #27ae60; color: #27ae60; }
+.script-btn.done:hover { background: #27ae60; color: white; }
+
+/* MARKING PAGE */
+.marking-page { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+.script-panel { flex: 1; overflow-y: auto; padding: 12px; background: #e8e8e8; }
+.script-panel img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.ms-panel { flex: 1; overflow-y: auto; padding: 12px; background: #f5f5dc; }
+.ms-panel img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.score-panel { width: 320px; min-width: 320px; background: white; border-left: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; }
+.score-panel-header { padding: 16px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
+.score-panel-header h3 { font-size: 16px; margin-bottom: 4px; }
+.score-panel-header .total-display { font-size: 24px; font-weight: 700; color: #667eea; }
+.question-list { flex: 1; overflow-y: auto; padding: 12px; }
+.q-item { padding: 10px; margin-bottom: 8px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
+.q-item .q-label { font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #333; }
+.q-item .q-marks { font-size: 12px; color: #888; margin-bottom: 6px; }
+.q-item .q-controls { display: flex; gap: 6px; align-items: center; }
+.q-item .q-controls button { padding: 4px 10px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 13px; background: white; transition: all 0.2s; }
+.q-item .q-controls button:hover { background: #f0f0f0; }
+.q-item .q-controls button.active-correct { background: #27ae60; color: white; border-color: #27ae60; }
+.q-item .q-controls button.active-wrong { background: #e74c3c; color: white; border-color: #e74c3c; }
+.q-item .q-controls input { width: 50px; padding: 4px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; text-align: center; }
+.q-item .q-score-display { font-weight: 700; font-size: 14px; min-width: 40px; text-align: right; }
+.q-item.scored { border-color: #667eea; background: #f0f4ff; }
+.q-group { margin-bottom: 12px; }
+.q-group-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #eef1f5; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 15px; color: #333; border: 2px solid transparent; user-select: none; transition: background 0.2s; }
+.q-group-header:hover { background: #e2e6ec; }
+.q-group-header .qg-left { display: flex; align-items: center; gap: 8px; }
+.q-group-header .qg-arrow { transition: transform 0.2s; font-size: 12px; }
+.q-group-header.collapsed .qg-arrow { transform: rotate(-90deg); }
+.q-group-header.all-correct { border-color: #27ae60; background: #e8f5e9; }
+.q-group-header.has-wrong { border-color: #e74c3c; background: #ffeaea; }
+.q-group-body { padding-top: 6px; }
+.q-group-body.collapsed { display: none; }
+.q-item { margin-left: 8px; }
+
+.submit-section { padding: 16px; border-top: 1px solid #ddd; background: #f8f9fa; }
+.submit-btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.submit-btn:hover { background: #5a6fd6; }
+
+/* RESULTS PAGE */
+.results-layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+.results-left { flex: 1; overflow-y: auto; padding: 12px; background: #e8e8e8; }
+.results-left img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.results-right { width: 440px; min-width: 440px; overflow-y: auto; background: #fff; border-left: 1px solid #ddd; padding: 20px; }
+.results-summary { background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.results-summary .big-score { font-size: 36px; font-weight: 700; color: #667eea; }
+.results-summary .score-detail { font-size: 14px; color: #666; margin-top: 6px; }
+.results-summary .time-taken { font-size: 13px; color: #888; margin-top: 4px; }
+.fb-section { margin-top: 16px; }
+.fb-section h3 { font-size: 16px; margin-bottom: 12px; color: #e74c3c; }
+.fb-item { background: white; border-radius: 8px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #e74c3c; }
+.fb-item .fb-label { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.fb-item .fb-marks { font-size: 13px; color: #666; margin-bottom: 8px; }
+.fb-item .fb-commentary { font-size: 14px; color: #444; line-height: 1.5; }
+.match-item { border-left-color: #27ae60; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" class="login-page">
+  <div class="login-box">
+    <h1>Physics Marking Training</h1>
+    <p>CAIE Physics marking practice system</p>
+    <input type="text" id="nameInput" placeholder="Enter your name" autofocus>
+    <button onclick="doLogin()">Start Training</button>
+  </div>
+</div>
+
+<!-- SELECTION PAGE -->
+<div id="selectionPage" class="hidden">
+  <div class="header">
+    <h2>Select Paper &amp; Script</h2>
+    <span class="user-info" id="userInfo"></span>
+  </div>
+  <div class="selection-page">
+    <div id="selectionContent"></div>
+  </div>
+</div>
+
+<!-- MARKING PAGE -->
+<div id="markingPage" class="hidden">
+  <div class="header">
+    <button class="back-btn" onclick="goBackToSelection()">Back</button>
+    <h2 id="markingTitle"></h2>
+    <span class="timer" id="timerDisplay">00:00</span>
+    <span class="user-info" id="markingUserInfo"></span>
+  </div>
+  <div class="marking-page">
+    <div class="script-panel" id="scriptPanel"></div>
+    <div class="ms-panel" id="msPanel"></div>
+    <div class="score-panel">
+      <div class="score-panel-header">
+        <h3>Scoring</h3>
+        <div class="total-display">Total: <span id="totalScore">0</span> / <span id="fullMark">0</span></div>
+      </div>
+      <div class="question-list" id="questionList"></div>
+      <div class="submit-section">
+        <button class="submit-btn" onclick="submitMarking()">Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="resultsPage" class="hidden">
+  <div class="header">
+    <button class="back-btn" onclick="goBackToSelection()">Back to Selection</button>
+    <h2>Results</h2>
+    <span class="user-info" id="resultsUserInfo"></span>
+  </div>
+  <div class="results-layout">
+    <div class="results-left" id="resultsScript"></div>
+    <div class="results-right" id="resultsContent"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="papers-data.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
