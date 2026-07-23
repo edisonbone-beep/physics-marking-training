@@ -46,10 +46,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* MARKING PAGE */
 .marking-page { display: flex; height: calc(100vh - 56px); overflow: hidden; }
-.script-panel { flex: 1; overflow-y: auto; padding: 12px; background: #e8e8e8; }
-.script-panel img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-.ms-panel { flex: 1; overflow-y: auto; padding: 12px; background: #f5f5dc; }
-.ms-panel img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.script-panel, .ms-panel { flex: 1; overflow-y: auto; position: relative; }
+.script-panel { background: #e8e8e8; }
+.ms-panel { background: #f5f5dc; }
+.panel-content { padding: 12px; }
+.panel-content img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: block; }
+.zoom-controls { position: sticky; bottom: 8px; display: flex; gap: 6px; background: rgba(255,255,255,0.92); padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.2); z-index: 10; margin: 8px auto 0; width: fit-content; }
+.zoom-controls button { width: 32px; height: 32px; border: none; border-radius: 50%; background: #667eea; color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; line-height: 1; }
+.zoom-controls button:hover { background: #5a6fd6; }
+.zoom-controls .zoom-label { font-size: 13px; color: #333; display: flex; align-items: center; padding: 0 4px; min-width: 42px; justify-content: center; font-weight: 600; }
 .score-panel { width: 320px; min-width: 320px; background: white; border-left: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; }
 .score-panel-header { padding: 16px; background: #f8f9fa; border-bottom: 1px solid #ddd; }
 .score-panel-header h3 { font-size: 16px; margin-bottom: 4px; }
