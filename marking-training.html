@@ -46,12 +46,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 /* MARKING PAGE */
 .marking-page { display: flex; height: calc(100vh - 56px); overflow: hidden; }
-.script-panel, .ms-panel { flex: 1; overflow: hidden; position: relative; cursor: grab; }
+.script-panel, .ms-panel { flex: 1; overflow-y: auto; position: relative; }
 .script-panel { background: #e8e8e8; }
 .ms-panel { background: #f5f5dc; }
-.script-panel.panning, .ms-panel.panning { cursor: grabbing; }
-.panel-content { transform-origin: 0 0; will-change: transform; padding: 12px; }
-.panel-content img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: block; pointer-events: none; user-select: none; }
+.panel-content { transform-origin: 0 0; padding: 12px; }
+.panel-content img { width: 100%; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: block; }
 .zoom-controls { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(255,255,255,0.92); padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.2); z-index: 10; }
 .zoom-controls button { width: 32px; height: 32px; border: none; border-radius: 50%; background: #667eea; color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; line-height: 1; }
 .zoom-controls button:hover { background: #5a6fd6; }
