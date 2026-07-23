@@ -486,66 +486,24 @@ function initZoomPan(panelId) {
   var content = panel.querySelector('.panel-content');
   if (!content) return;
 
-  panelStates[panelId] = { scale: 1, tx: 0, ty: 0, dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+  panelStates[panelId] = { scale: 1, tx: 0, ty: 0 };
 
-  panel.addEventListener('wheel', function(e) {
-    e.preventDefault();
-    var dir = e.deltaY < 0 ? 1 : -1;
-    zoomPanel(panelId, dir);
-  }, { passive: false });
-
-  panel.addEventListener('mousedown', function(e) {
-    if (e.button !== 0) return;
-    var s = panelStates[panelId];
-    s.dragging = true;
-    s.startX = e.clientX;
-    s.startY = e.clientY;
-    s.startTx = s.tx;
-    s.startTy = s.ty;
-    panel.classList.add('panning');
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    var s = panelStates[panelId];
-    if (!s || !s.dragging) return;
-    s.tx = s.startTx + (e.clientX - s.startX);
-    s.ty = s.startTy + (e.clientY - s.startY);
-    applyTransform(panelId);
-  });
-
-  document.addEventListener('mouseup', function() {
-    var s = panelStates[panelId];
-    if (!s || !s.dragging) return;
-    s.dragging = false;
-    panel.classList.remove('panning');
-  });
+  // Button-only zoom, no wheel hijack, no drag — native scroll handles page navigation
 }
 
 function zoomPanel(panelId, dir) {
   var s = panelStates[panelId];
   if (!s) return;
-  var panel = document.getElementById(panelId);
-  var rect = panel.getBoundingClientRect();
 
   if (dir === 0) {
-    // Reset
-    var oldScale = s.scale;
-    s.scale = 1; s.tx = 0; s.ty = 0;
+    s.scale = 1;
     applyTransform(panelId);
     updateZoomLabel(panelId);
     return;
   }
 
   var factor = dir > 0 ? 1.2 : 1 / 1.2;
-  var newScale = Math.min(Math.max(s.scale * factor, 0.5), 5);
-
-  // Zoom towards center of panel
-  var cx = rect.width / 2;
-  var cy = rect.height / 2;
-  s.tx = cx - (cx - s.tx) * (newScale / s.scale);
-  s.ty = cy - (cy - s.ty) * (newScale / s.scale);
-  s.scale = newScale;
+  s.scale = Math.min(Math.max(s.scale * factor, 0.5), 5);
 
   applyTransform(panelId);
   updateZoomLabel(panelId);
@@ -556,7 +514,7 @@ function applyTransform(panelId) {
   var panel = document.getElementById(panelId);
   var content = panel.querySelector('.panel-content');
   if (!content) return;
-  content.style.transform = 'translate(' + s.tx + 'px, ' + s.ty + 'px) scale(' + s.scale + ')';
+  content.style.transform = 'scale(' + s.scale + ')';
 }
 
 function updateZoomLabel(panelId) {
