@@ -1189,7 +1189,7 @@ var PAPERS = {
     "hasFb": true,
     "feedback": {
       "E": {
-        "totalMark": 38,
+        "totalMark": 39,
         "questions": [
           {
             "label": "1(a)",
@@ -1325,14 +1325,20 @@ var PAPERS = {
           },
           {
             "label": "3(f)",
+            "officialMark": 1,
+            "maxMark": 1,
+            "commentary": "The candidate’s statement of ‘no’ and the justification of this statement as the idea that the different results are beyond the limits of experimental accuracy is awarded 1 mark."
+          },
+          {
+            "label": "4",
             "officialMark": 6,
             "maxMark": 7,
-            "commentary": "The candidate’s statement of ‘no’ and the justification of this statement as the idea that the different results are beyond the limits of experimental accuracy is awarded 1 mark. 1/1 4 For this question the candidate has underlined important information and ticked the bullet points which has helped the candidate answer this extended question. The candidate is awarded 6 marks for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP4 repeat with at least two other currents MP5 a way to change the current/voltage by using a variable resistor MP6 table with columns for potential difference, current and resistance, headed with quantities and appropriate units MP7 plot graph of resistance against current The candidate has not explained how to calculate resistance in their answer."
+            "commentary": "important information and ticked the bullet points which has helped the candidate answer this extended question. The candidate is awarded 6 marks for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP4 repeat with at least two other currents MP5 a way to change the current/voltage by using a variable resistor MP6 table with columns for potential difference, current and resistance, headed with quantities and appropriate units MP7 plot graph of resistance against current The candidate has not explained how to calculate resistance in their answer."
           }
         ]
       },
       "F": {
-        "totalMark": 35,
+        "totalMark": 36,
         "questions": [
           {
             "label": "1(a)",
@@ -1468,9 +1474,15 @@ var PAPERS = {
           },
           {
             "label": "3(f)",
+            "officialMark": 1,
+            "maxMark": 1,
+            "commentary": "The candidate’s statement of ‘no’ and the justification of this statement as the idea that the different results are beyond the limits of experimental accuracy is awarded 1 mark."
+          },
+          {
+            "label": "4",
             "officialMark": 6,
             "maxMark": 7,
-            "commentary": "The candidate’s statement of ‘no’ and the justification of this statement as the idea that the different results are beyond the limits of experimental accuracy is awarded 1 mark. 1/1 4 For this question the candidate has ticked the bullet points which has helped the candidate answer this extended question. The candidate is awarded 6 marks for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP3 calculate resistance MP4 repeat with at least two other power supply values MP6 table with columns for potential difference, current and resistance, headed with quantities and appropriate units MP7 compare values of resistance and current in table The candidate has not explained how to change the current/voltage by using e.g. a variable resistor."
+            "commentary": "the bullet points which has helped the candidate answer this extended question. The candidate is awarded 6 marks for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP3 calculate resistance MP4 repeat with at least two other power supply values MP6 table with columns for potential difference, current and resistance, headed with quantities and appropriate units MP7 compare values of resistance and current in table The candidate has not explained how to change the current/voltage by using e.g. a variable resistor."
           }
         ]
       },
@@ -1611,9 +1623,15 @@ var PAPERS = {
           },
           {
             "label": "3(f)",
+            "officialMark": 0,
+            "maxMark": 1,
+            "commentary": "The candidate’s statement of ‘no’ does not match the justification in terms of the idea that the different results are beyond the limits of experimental accuracy, so 0 marks are awarded."
+          },
+          {
+            "label": "4",
             "officialMark": 3,
             "maxMark": 7,
-            "commentary": "The candidate’s statement of ‘no’ does not match the justification in terms of the idea that the different results are beyond the limits of experimental accuracy, so 0 marks are awarded. 0/1 4 The candidate is awarded 3 marks for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP3 calculate resistance The candidate has not explicitly explained that the experiment is repeated using at least two other current values. They have not explained how to change the current/voltage by using e.g. a variable resistor. The table has columns for potential difference and current but does not have a column for resistance. The candidate has not mentioned to a plot graph of resistance against current or to compare values of resistance and current in table."
+            "commentary": "for the following marking points (MP): MP1 circuit diagram – power supply, lamp and ammeter in series, voltmeter in suitable position to read V across lamp MP2 measure the current and potential difference MP3 calculate resistance The candidate has not explicitly explained that the experiment is repeated using at least two other current values. They have not explained how to change the current/voltage by using e.g. a variable resistor. The table has columns for potential difference and current but does not have a column for resistance. The candidate has not mentioned to a plot graph of resistance against current or to compare values of resistance and current in table."
           }
         ]
       },
@@ -1755,8 +1773,14 @@ var PAPERS = {
           {
             "label": "3(f)",
             "officialMark": 0,
+            "maxMark": 1,
+            "commentary": "The candidate’s statement of ‘no’ does not match the justification in terms of the idea that the different results are beyond the limits of experimental accuracy, so 0 marks are awarded."
+          },
+          {
+            "label": "4",
+            "officialMark": 0,
             "maxMark": 7,
-            "commentary": "The candidate’s statement of ‘no’ does not match the justification in terms of the idea that the different results are beyond the limits of experimental accuracy, so 0 marks are awarded. 0/1 4 The candidate is awarded 0 marks for their answer. The circuit diagram is incorrect as the voltmeter is not in a suitable position to read V across lamp. There is no mention of measuring both the current and potential difference, just recording the data. The candidate has not explained how to calculate resistance. The candidate has not explained that the experiment is repeated using at least two other current values. They have not explained how to change the current/voltage by using e.g. a variable resistor. The table has columns for current and resistance but does not have a column for voltage. The candidate has not mentioned to plot a graph of resistance against current or to compare values of resistance and current in table."
+            "commentary": "for their answer. The circuit diagram is incorrect as the voltmeter is not in a suitable position to read V across lamp. There is no mention of measuring both the current and potential difference, just recording the data. The candidate has not explained how to calculate resistance. The candidate has not explained that the experiment is repeated using at least two other current values. They have not explained how to change the current/voltage by using e.g. a variable resistor. The table has columns for current and resistance but does not have a column for voltage. The candidate has not mentioned to plot a graph of resistance against current or to compare values of resistance and current in table."
           }
         ]
       }
