@@ -2539,7 +2539,7 @@ var PAPERS = {
     "category": "AL",
     "subject": "9702 Physics",
     "paper": "Paper 51",
-    "fullMark": 40,
+    "fullMark": 30,
     "msImages": [
       "img/al2_p51_ms_1.jpg",
       "img/al2_p51_ms_2.jpg",
