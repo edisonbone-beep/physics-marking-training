@@ -97,19 +97,27 @@ function startMarking(paperKey, scriptId) {
   document.getElementById('markingUserInfo').textContent = currentUser;
   document.getElementById('fullMark').textContent = pinfo.fullMark;
 
-  // Render script images (left panel)
-  let scriptHtml = '';
+  // Render script images (left panel) with zoom/pan wrapper
+  let scriptHtml = '<div class="panel-content">';
   for (const img of sinfo.images) {
     scriptHtml += `<img src="${img}" loading="lazy" alt="Script page">`;
   }
+  scriptHtml += '</div>';
+  scriptHtml += '<div class="zoom-controls"><button onclick="zoomPanel(\'scriptPanel\',-1)">\u2212</button><span class="zoom-label" id="zoomLabel_scriptPanel">100%</span><button onclick="zoomPanel(\'scriptPanel\',1)">+</button><button onclick="zoomPanel(\'scriptPanel\',0)" style="font-size:13px;">\u21BA</button></div>';
   document.getElementById('scriptPanel').innerHTML = scriptHtml;
 
-  // Render MS images (middle panel)
-  let msHtml = '';
+  // Render MS images (middle panel) with zoom/pan wrapper
+  let msHtml = '<div class="panel-content">';
   for (const img of pinfo.msImages) {
     msHtml += `<img src="${img}" loading="lazy" alt="Mark scheme page">`;
   }
+  msHtml += '</div>';
+  msHtml += '<div class="zoom-controls"><button onclick="zoomPanel(\'msPanel\',-1)">\u2212</button><span class="zoom-label" id="zoomLabel_msPanel">100%</span><button onclick="zoomPanel(\'msPanel\',1)">+</button><button onclick="zoomPanel(\'msPanel\',0)" style="font-size:13px;">\u21BA</button></div>';
   document.getElementById('msPanel').innerHTML = msHtml;
+
+  // Initialize zoom/pan for both panels
+  initZoomPan('scriptPanel');
+  initZoomPan('msPanel');
 
   // Build question list (right panel)
   questionScores = {};
@@ -468,4 +476,91 @@ function hideAll() {
   document.getElementById('selectionPage').classList.add('hidden');
   document.getElementById('markingPage').classList.add('hidden');
   document.getElementById('resultsPage').classList.add('hidden');
+}
+
+// === Zoom & Pan for image panels ===
+var panelStates = {};
+
+function initZoomPan(panelId) {
+  var panel = document.getElementById(panelId);
+  var content = panel.querySelector('.panel-content');
+  if (!content) return;
+
+  panelStates[panelId] = { scale: 1, tx: 0, ty: 0, dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+
+  panel.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var dir = e.deltaY < 0 ? 1 : -1;
+    zoomPanel(panelId, dir);
+  }, { passive: false });
+
+  panel.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    var s = panelStates[panelId];
+    s.dragging = true;
+    s.startX = e.clientX;
+    s.startY = e.clientY;
+    s.startTx = s.tx;
+    s.startTy = s.ty;
+    panel.classList.add('panning');
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    var s = panelStates[panelId];
+    if (!s || !s.dragging) return;
+    s.tx = s.startTx + (e.clientX - s.startX);
+    s.ty = s.startTy + (e.clientY - s.startY);
+    applyTransform(panelId);
+  });
+
+  document.addEventListener('mouseup', function() {
+    var s = panelStates[panelId];
+    if (!s || !s.dragging) return;
+    s.dragging = false;
+    panel.classList.remove('panning');
+  });
+}
+
+function zoomPanel(panelId, dir) {
+  var s = panelStates[panelId];
+  if (!s) return;
+  var panel = document.getElementById(panelId);
+  var rect = panel.getBoundingClientRect();
+
+  if (dir === 0) {
+    // Reset
+    var oldScale = s.scale;
+    s.scale = 1; s.tx = 0; s.ty = 0;
+    applyTransform(panelId);
+    updateZoomLabel(panelId);
+    return;
+  }
+
+  var factor = dir > 0 ? 1.2 : 1 / 1.2;
+  var newScale = Math.min(Math.max(s.scale * factor, 0.5), 5);
+
+  // Zoom towards center of panel
+  var cx = rect.width / 2;
+  var cy = rect.height / 2;
+  s.tx = cx - (cx - s.tx) * (newScale / s.scale);
+  s.ty = cy - (cy - s.ty) * (newScale / s.scale);
+  s.scale = newScale;
+
+  applyTransform(panelId);
+  updateZoomLabel(panelId);
+}
+
+function applyTransform(panelId) {
+  var s = panelStates[panelId];
+  var panel = document.getElementById(panelId);
+  var content = panel.querySelector('.panel-content');
+  if (!content) return;
+  content.style.transform = 'translate(' + s.tx + 'px, ' + s.ty + 'px) scale(' + s.scale + ')';
+}
+
+function updateZoomLabel(panelId) {
+  var s = panelStates[panelId];
+  var label = document.getElementById('zoomLabel_' + panelId);
+  if (label) label.textContent = Math.round(s.scale * 100) + '%';
 }
