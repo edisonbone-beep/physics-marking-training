@@ -45,38 +45,73 @@ function showSelectionPage() {
   renderSelection();
 }
 
-function renderSelection() {
-  const container = document.getElementById('selectionContent');
-  const categories = {};
+var viewMode = 'level';
 
-  for (const [pkey, pinfo] of Object.entries(PAPERS)) {
-    const cat = pinfo.category;
-    if (!categories[cat]) categories[cat] = [];
-    categories[cat].push({ key: pkey, ...pinfo });
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('viewLevel').classList.toggle('active', mode === 'level');
+  document.getElementById('viewPaper').classList.toggle('active', mode === 'paper');
+  renderSelection();
+}
+
+function extractPaperNum(paperStr) {
+  var m = paperStr.match(/Paper\s*(\d)/);
+  return m ? m[1] : '?';
+}
+
+function renderPaperCard(p) {
+  var html = '<div class="paper-card">';
+  html += '<h3>' + p.subject + ' - ' + p.paper + ' <span style="font-size:12px;color:#aaa;">(' + (p.category === 'IG' ? 'IGCSE' : 'A-Level') + ')</span></h3>';
+  html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
+  html += '<div class="script-list">';
+  for (var sid of Object.keys(p.scripts)) {
+    var doneKey = 'done_' + currentUser + '_' + p.key + '_' + sid;
+    var isDone = localStorage.getItem(doneKey) === 'true';
+    html += '<button class="script-btn ' + (isDone ? 'done' : '') + '" onclick="startMarking(\'' + p.key + '\', \'' + sid + '\')">Script ' + sid + (isDone ? ' \u2713' : '') + '</button>';
   }
+  html += '</div></div>';
+  return html;
+}
 
-  let html = '';
-  for (const [cat, paperList] of Object.entries(categories)) {
-    html += `<div class="category-section">`;
-    html += `<div class="category-title ${cat.toLowerCase()}">${cat === 'IG' ? 'IGCSE' : 'A-Level'} Physics</div>`;
-    html += `<div class="papers-grid">`;
+function renderSelection() {
+  var container = document.getElementById('selectionContent');
+  var html = '';
 
-    for (const p of paperList) {
-      html += `<div class="paper-card">`;
-      html += `<h3>${p.subject} - ${p.paper}</h3>`;
-      html += `<div class="paper-sub">Full mark: ${p.fullMark} | Scripts: ${Object.keys(p.scripts).join(', ')}</div>`;
-      html += `<div class="script-list">`;
-
-      for (const sid of Object.keys(p.scripts)) {
-        const doneKey = `done_${currentUser}_${p.key}_${sid}`;
-        const isDone = localStorage.getItem(doneKey) === 'true';
-        html += `<button class="script-btn ${isDone ? 'done' : ''}" onclick="startMarking('${p.key}', '${sid}')">Script ${sid}${isDone ? ' \u2713' : ''}</button>`;
-      }
-
-      html += `</div></div>`;
+  if (viewMode === 'level') {
+    var categories = {};
+    for (var pkey in PAPERS) {
+      var pinfo = PAPERS[pkey];
+      var cat = pinfo.category;
+      if (!categories[cat]) categories[cat] = [];
+      categories[cat].push(Object.assign({ key: pkey }, pinfo));
     }
-
-    html += `</div></div>`;
+    for (var cat in categories) {
+      html += '<div class="category-section">';
+      html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' Physics</div>';
+      html += '<div class="papers-grid">';
+      for (var p of categories[cat]) {
+        html += renderPaperCard(p);
+      }
+      html += '</div></div>';
+    }
+  } else {
+    var paperGroups = {};
+    for (var pkey in PAPERS) {
+      var pinfo = PAPERS[pkey];
+      var num = extractPaperNum(pinfo.paper);
+      if (!paperGroups[num]) paperGroups[num] = [];
+      paperGroups[num].push(Object.assign({ key: pkey }, pinfo));
+    }
+    var sortedNums = Object.keys(paperGroups).sort();
+    for (var num of sortedNums) {
+      html += '<div class="category-section">';
+      html += '<div class="category-title paper-group">Paper ' + num + '</div>';
+      html += '<div class="papers-grid">';
+      for (var p of paperGroups[num]) {
+        html += renderPaperCard(p);
+      }
+      html += '</div></div>';
+    }
   }
 
   container.innerHTML = html;
