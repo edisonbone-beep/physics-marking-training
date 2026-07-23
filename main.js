@@ -514,7 +514,7 @@ function applyTransform(panelId) {
   var panel = document.getElementById(panelId);
   var content = panel.querySelector('.panel-content');
   if (!content) return;
-  content.style.transform = 'scale(' + s.scale + ')';
+  content.style.width = (s.scale * 100) + '%';
 }
 
 function updateZoomLabel(panelId) {
