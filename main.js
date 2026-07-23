@@ -68,7 +68,7 @@ function renderSelection() {
       html += `<div class="script-list">`;
 
       for (const sid of Object.keys(p.scripts)) {
-        const doneKey = `done_${p.key}_${sid}`;
+        const doneKey = `done_${currentUser}_${p.key}_${sid}`;
         const isDone = localStorage.getItem(doneKey) === 'true';
         html += `<button class="script-btn ${isDone ? 'done' : ''}" onclick="startMarking('${p.key}', '${sid}')">Script ${sid}${isDone ? ' \u2713' : ''}</button>`;
       }
@@ -370,7 +370,7 @@ function submitMarking() {
     timeTaken: timerSeconds,
     results: results,
   };
-  localStorage.setItem(`done_${currentPaper}_${currentScript}`, 'true');
+  localStorage.setItem(`done_${currentUser}_${currentPaper}_${currentScript}`, 'true');
 
   // Show results
   showResults(saveData, mismatches, fbQuestions);
