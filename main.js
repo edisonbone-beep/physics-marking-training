@@ -65,38 +65,63 @@ function renderSelection() {
   var container = document.getElementById('selectionContent');
   var html = '';
 
-  // Group by category (IG/AL), then by paper number
-  var categories = {};
-  for (var pkey in PAPERS) {
-    var pinfo = PAPERS[pkey];
-    var cat = pinfo.category;
-    var num = extractPaperNum(pinfo.paper);
-    if (!categories[cat]) categories[cat] = {};
-    if (!categories[cat][num]) categories[cat][num] = [];
-    categories[cat][num].push(Object.assign({ key: pkey }, pinfo));
-  }
+  // All subjects in display order
+  var allSubjects = [
+    { name: 'Physics', hasData: true },
+    { name: 'Mathematics', hasData: false },
+    { name: 'Chemistry', hasData: false },
+    { name: 'Biology', hasData: false },
+    { name: 'Economics', hasData: false }
+  ];
 
-  var catOrder = ['IG', 'AL'];
-  for (var ci = 0; ci < catOrder.length; ci++) {
-    var cat = catOrder[ci];
-    if (!categories[cat]) continue;
-    html += '<div class="category-section">';
-    html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' Physics</div>';
+  for (var si = 0; si < allSubjects.length; si++) {
+    var subj = allSubjects[si];
+    html += '<div class="subject-section">';
+    html += '<div class="subject-title">' + subj.name + '</div>';
 
-    var paperNums = Object.keys(categories[cat]).sort();
-    for (var ni = 0; ni < paperNums.length; ni++) {
-      var num = paperNums[ni];
-      var papers = categories[cat][num];
-      html += '<div class="paper-num-heading">Paper ' + num + '</div>';
-      html += '<div class="papers-grid">';
-      for (var pi = 0; pi < papers.length; pi++) {
-        var p = papers[pi];
-        html += '<div class="paper-card">';
-        html += '<h3>' + p.subject + ' - ' + p.paper + '</h3>';
-        html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
-        html += renderScriptButtons(p);
+    if (!subj.hasData) {
+      html += '<div class="subject-card-placeholder"><p>Coming soon</p></div>';
+      html += '</div>';
+      continue;
+    }
+
+    // Group by category (IG/AL), then by paper number
+    var categories = {};
+    for (var pkey in PAPERS) {
+      var pinfo = PAPERS[pkey];
+      var pSubj = pinfo.subject.split(' ').pop();
+      if (pSubj !== subj.name) continue;
+      var cat = pinfo.category;
+      var num = extractPaperNum(pinfo.paper);
+      if (!categories[cat]) categories[cat] = {};
+      if (!categories[cat][num]) categories[cat][num] = [];
+      categories[cat][num].push(Object.assign({ key: pkey }, pinfo));
+    }
+
+    var catOrder = ['IG', 'AL'];
+    for (var ci = 0; ci < catOrder.length; ci++) {
+      var cat = catOrder[ci];
+      if (!categories[cat]) continue;
+      html += '<div class="category-section">';
+      html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' ' + subj.name + '</div>';
+
+      var paperNums = Object.keys(categories[cat]).sort();
+      for (var ni = 0; ni < paperNums.length; ni++) {
+        var num = paperNums[ni];
+        var papers = categories[cat][num];
+        html += '<div class="paper-num-heading">Paper ' + num + '</div>';
+        html += '<div class="papers-grid">';
+        for (var pi = 0; pi < papers.length; pi++) {
+          var p = papers[pi];
+          html += '<div class="paper-card">';
+          html += '<h3>' + p.subject + ' - ' + p.paper + '</h3>';
+          html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
+          html += renderScriptButtons(p);
+          html += '</div>';
+        }
         html += '</div>';
       }
+
       html += '</div>';
     }
 

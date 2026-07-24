@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Physics Marking Training</title>
+<title>CAIE Marking Training</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
@@ -78,6 +78,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .category-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; padding: 8px 16px; border-radius: 8px; }
 .category-title.ig { background: #e8f5e9; color: #2e7d32; }
 .category-title.al { background: #e3f2fd; color: #1565c0; }
+.subject-section { margin-bottom: 40px; }
+.subject-title { font-size: 24px; font-weight: 800; color: #333; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 3px solid #667eea; display: inline-block; }
+.subject-card-placeholder { background: #f5f5f5; border-radius: 12px; padding: 24px; border: 2px dashed #ccc; text-align: center; }
+.subject-card-placeholder p { color: #999; font-size: 14px; }
+.paper-card.disabled { opacity: 0.5; cursor: default; pointer-events: none; }
 .papers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
 .paper-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
 .paper-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
@@ -159,8 +164,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <!-- LOGIN PAGE -->
 <div id="loginPage" class="login-page">
   <div class="login-box">
-    <h1>Physics Marking Training</h1>
-    <p>CAIE Physics marking practice system</p>
+    <h1>CAIE Marking Training</h1>
+    <p>CAIE marking practice system</p>
     <input type="text" id="nameInput" placeholder="Enter your name" autofocus>
     <button onclick="doLogin()">Start Training</button>
   </div>
