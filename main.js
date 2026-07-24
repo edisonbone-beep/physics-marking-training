@@ -45,31 +45,19 @@ function showSelectionPage() {
   renderSelection();
 }
 
-var viewMode = 'level';
-
-function setViewMode(mode) {
-  viewMode = mode;
-  document.getElementById('viewLevel').classList.toggle('active', mode === 'level');
-  document.getElementById('viewPaper').classList.toggle('active', mode === 'paper');
-  renderSelection();
-}
-
 function extractPaperNum(paperStr) {
   var m = paperStr.match(/Paper\s*(\d)/);
   return m ? m[1] : '?';
 }
 
-function renderPaperCard(p) {
-  var html = '<div class="paper-card">';
-  html += '<h3>' + p.subject + ' - ' + p.paper + ' <span style="font-size:12px;color:#aaa;">(' + (p.category === 'IG' ? 'IGCSE' : 'A-Level') + ')</span></h3>';
-  html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
-  html += '<div class="script-list">';
+function renderScriptButtons(p) {
+  var html = '<div class="script-list">';
   for (var sid of Object.keys(p.scripts)) {
     var doneKey = 'done_' + currentUser + '_' + p.key + '_' + sid;
     var isDone = localStorage.getItem(doneKey) === 'true';
     html += '<button class="script-btn ' + (isDone ? 'done' : '') + '" onclick="startMarking(\'' + p.key + '\', \'' + sid + '\')">Script ' + sid + (isDone ? ' \u2713' : '') + '</button>';
   }
-  html += '</div></div>';
+  html += '</div>';
   return html;
 }
 
@@ -77,44 +65,226 @@ function renderSelection() {
   var container = document.getElementById('selectionContent');
   var html = '';
 
-  if (viewMode === 'level') {
-    var categories = {};
-    for (var pkey in PAPERS) {
-      var pinfo = PAPERS[pkey];
-      var cat = pinfo.category;
-      if (!categories[cat]) categories[cat] = [];
-      categories[cat].push(Object.assign({ key: pkey }, pinfo));
-    }
-    for (var cat in categories) {
-      html += '<div class="category-section">';
-      html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' Physics</div>';
+  // Group by category (IG/AL), then by paper number
+  var categories = {};
+  for (var pkey in PAPERS) {
+    var pinfo = PAPERS[pkey];
+    var cat = pinfo.category;
+    var num = extractPaperNum(pinfo.paper);
+    if (!categories[cat]) categories[cat] = {};
+    if (!categories[cat][num]) categories[cat][num] = [];
+    categories[cat][num].push(Object.assign({ key: pkey }, pinfo));
+  }
+
+  var catOrder = ['IG', 'AL'];
+  for (var ci = 0; ci < catOrder.length; ci++) {
+    var cat = catOrder[ci];
+    if (!categories[cat]) continue;
+    html += '<div class="category-section">';
+    html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' Physics</div>';
+
+    var paperNums = Object.keys(categories[cat]).sort();
+    for (var ni = 0; ni < paperNums.length; ni++) {
+      var num = paperNums[ni];
+      var papers = categories[cat][num];
+      html += '<div class="paper-num-heading">Paper ' + num + '</div>';
       html += '<div class="papers-grid">';
-      for (var p of categories[cat]) {
-        html += renderPaperCard(p);
+      for (var pi = 0; pi < papers.length; pi++) {
+        var p = papers[pi];
+        html += '<div class="paper-card">';
+        html += '<h3>' + p.subject + ' - ' + p.paper + '</h3>';
+        html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
+        html += renderScriptButtons(p);
+        html += '</div>';
       }
-      html += '</div></div>';
+      html += '</div>';
     }
-  } else {
-    var paperGroups = {};
-    for (var pkey in PAPERS) {
-      var pinfo = PAPERS[pkey];
-      var num = extractPaperNum(pinfo.paper);
-      if (!paperGroups[num]) paperGroups[num] = [];
-      paperGroups[num].push(Object.assign({ key: pkey }, pinfo));
-    }
-    var sortedNums = Object.keys(paperGroups).sort();
-    for (var num of sortedNums) {
-      html += '<div class="category-section">';
-      html += '<div class="category-title paper-group">Paper ' + num + '</div>';
-      html += '<div class="papers-grid">';
-      for (var p of paperGroups[num]) {
-        html += renderPaperCard(p);
-      }
-      html += '</div></div>';
-    }
+
+    html += '</div>';
   }
 
   container.innerHTML = html;
+}
+
+// ============================================================
+// ADMIN PANEL
+// ============================================================
+var ADMIN_PWD = '123456';
+var allResults = [];
+
+function showAdminLogin() {
+  document.getElementById('adminLoginOverlay').classList.remove('hidden');
+  document.getElementById('adminPwdInput').value = '';
+  document.getElementById('adminErrorMsg').classList.add('hidden');
+  document.getElementById('adminPwdInput').focus();
+}
+
+function hideAdminLogin() {
+  document.getElementById('adminLoginOverlay').classList.add('hidden');
+}
+
+function doAdminLogin() {
+  var pwd = document.getElementById('adminPwdInput').value;
+  if (pwd === ADMIN_PWD) {
+    hideAdminLogin();
+    hideAll();
+    document.getElementById('adminPage').classList.remove('hidden');
+    loadAdminData();
+  } else {
+    document.getElementById('adminErrorMsg').classList.remove('hidden');
+  }
+}
+
+document.getElementById('adminPwdInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') doAdminLogin();
+});
+
+function adminLogout() {
+  hideAll();
+  document.getElementById('loginPage').classList.remove('hidden');
+}
+
+function adminFormatTime(secs) {
+  if (!secs && secs !== 0) return '-';
+  var m = Math.floor(secs / 60);
+  var s = secs % 60;
+  return m + 'm ' + s + 's';
+}
+
+async function loadAdminData() {
+  document.getElementById('resultsTable').innerHTML = '<div class="loading">Loading...</div>';
+
+  if (!supabase) {
+    document.getElementById('resultsTable').innerHTML = '<div class="loading" style="color:#e74c3c;">Database not connected</div>';
+    return;
+  }
+
+  var resp = await supabase.from('marking_results').select('*').order('created_at', { ascending: false });
+  if (resp.error) {
+    document.getElementById('resultsTable').innerHTML = '<div class="loading" style="color:#e74c3c;">Error: ' + resp.error.message + '</div>';
+    return;
+  }
+
+  allResults = resp.data || [];
+  var userSet = new Set(allResults.map(function(r) { return r.teacher_name; }));
+
+  var totalQuestions = 0, matchedQuestions = 0;
+  for (var ri = 0; ri < allResults.length; ri++) {
+    var r = allResults[ri];
+    if (r.results && Array.isArray(r.results)) {
+      for (var qi = 0; qi < r.results.length; qi++) {
+        var q = r.results[qi];
+        if (q.officialMark !== null && q.officialMark !== undefined) {
+          totalQuestions++;
+          if (q.myMark === q.officialMark) matchedQuestions++;
+        }
+      }
+    }
+  }
+  var accuracy = totalQuestions > 0 ? Math.round(matchedQuestions / totalQuestions * 100) : 0;
+
+  document.getElementById('statsGrid').innerHTML =
+    '<div class="stat-card"><h3>Total Teachers</h3><div class="stat-value">' + userSet.size + '</div></div>' +
+    '<div class="stat-card"><h3>Total Submissions</h3><div class="stat-value">' + allResults.length + '</div></div>' +
+    '<div class="stat-card"><h3>Avg Accuracy</h3><div class="stat-value">' + accuracy + '%</div></div>' +
+    '<div class="stat-card"><h3>Avg Time</h3><div class="stat-value">' + (allResults.length > 0 ? adminFormatTime(Math.round(allResults.reduce(function(s,r) { return s + r.time_taken; }, 0) / allResults.length)) : '-') + '</div></div>';
+
+  var tableHtml = '<table><tr><th></th><th>Teacher</th><th>Paper</th><th>Script</th><th>My Mark</th><th>Official</th><th>Full</th><th>Diff</th><th>Accuracy</th><th>Time</th><th>Date</th></tr>';
+
+  for (var idx = 0; idx < allResults.length; idx++) {
+    var r = allResults[idx];
+    var diff = r.official_total !== null && r.official_total !== undefined ? r.my_total - r.official_total : null;
+    var diffHtml = '-';
+    if (diff !== null) {
+      if (diff > 0) diffHtml = '<span class="diff-pos">+' + diff + '</span>';
+      else if (diff < 0) diffHtml = '<span class="diff-neg">' + diff + '</span>';
+      else diffHtml = '<span class="diff-zero">0</span>';
+    }
+    var subTotal = 0, subMatch = 0;
+    if (r.results && Array.isArray(r.results)) {
+      for (var qi = 0; qi < r.results.length; qi++) {
+        var q = r.results[qi];
+        if (q.officialMark !== null && q.officialMark !== undefined) {
+          subTotal++;
+          if (q.myMark === q.officialMark) subMatch++;
+        }
+      }
+    }
+    var subAcc = subTotal > 0 ? Math.round(subMatch / subTotal * 100) + '%' : '-';
+    var dateStr = new Date(r.created_at).toLocaleString();
+
+    tableHtml += '<tr>' +
+      '<td><button class="expand-btn" onclick="toggleAdminDetail(' + idx + ', this)">+</button></td>' +
+      '<td>' + r.teacher_name + '</td>' +
+      '<td>' + r.paper + '</td>' +
+      '<td>' + r.script + '</td>' +
+      '<td>' + r.my_total + '</td>' +
+      '<td>' + (r.official_total !== null && r.official_total !== undefined ? r.official_total : '-') + '</td>' +
+      '<td>' + r.full_mark + '</td>' +
+      '<td>' + diffHtml + '</td>' +
+      '<td>' + subAcc + '</td>' +
+      '<td>' + adminFormatTime(r.time_taken) + '</td>' +
+      '<td>' + dateStr + '</td></tr>';
+    tableHtml += '<tr class="detail-row hidden" id="detail_' + idx + '"><td colspan="11"><div id="detail_content_' + idx + '"></div></td></tr>';
+  }
+
+  tableHtml += '</table>';
+  document.getElementById('resultsTable').innerHTML = tableHtml;
+}
+
+function toggleAdminDetail(idx, btn) {
+  var row = document.getElementById('detail_' + idx);
+  var isHidden = row.classList.contains('hidden');
+  row.classList.toggle('hidden');
+  btn.textContent = isHidden ? '-' : '+';
+  if (isHidden) {
+    var r = allResults[idx];
+    var html = '<table class="detail-table"><tr><th>Part</th><th>Your Mark</th><th>Official</th><th>Max</th><th>Match</th></tr>';
+    if (r.results && Array.isArray(r.results)) {
+      for (var qi = 0; qi < r.results.length; qi++) {
+        var q = r.results[qi];
+        var isMatch = q.officialMark !== null && q.officialMark !== undefined ? q.myMark === q.officialMark : null;
+        var icon = isMatch === null ? '-' : (isMatch ? '<span style="color:#27ae60;">&#10003;</span>' : '<span style="color:#e74c3c;">&#10007;</span>');
+        var bg = isMatch === false ? '#ffeaea' : 'transparent';
+        html += '<tr style="background:' + bg + ';">';
+        html += '<td style="font-weight:600;">' + q.label + '</td>';
+        html += '<td>' + q.myMark + '</td>';
+        html += '<td>' + (q.officialMark !== null && q.officialMark !== undefined ? q.officialMark : '-') + '</td>';
+        html += '<td>' + (q.maxMark !== null ? q.maxMark : '-') + '</td>';
+        html += '<td>' + icon + '</td></tr>';
+      }
+    }
+    html += '</table>';
+    document.getElementById('detail_content_' + idx).innerHTML = html;
+  }
+}
+
+function exportCSV() {
+  if (allResults.length === 0) { alert('No data to export'); return; }
+  var csv = 'Teacher,Paper,Script,My Mark,Official,Full Mark,Diff,Accuracy,Time,Date\n';
+  for (var ri = 0; ri < allResults.length; ri++) {
+    var r = allResults[ri];
+    var diff = r.official_total !== null && r.official_total !== undefined ? r.my_total - r.official_total : '';
+    var subTotal = 0, subMatch = 0;
+    if (r.results && Array.isArray(r.results)) {
+      for (var qi = 0; qi < r.results.length; qi++) {
+        var q = r.results[qi];
+        if (q.officialMark !== null && q.officialMark !== undefined) {
+          subTotal++;
+          if (q.myMark === q.officialMark) subMatch++;
+        }
+      }
+    }
+    var acc = subTotal > 0 ? Math.round(subMatch / subTotal * 100) + '%' : '';
+    csv += '"' + r.teacher_name + '","' + r.paper + '","' + r.script + '",' + r.my_total + ',' + (r.official_total !== null && r.official_total !== undefined ? r.official_total : '') + ',' + r.full_mark + ',' + diff + ',' + acc + ',"' + adminFormatTime(r.time_taken) + '","' + new Date(r.created_at).toLocaleString() + '"\n';
+  }
+  var blob = new Blob([csv], { type: 'text/csv' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'marking_results_' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ============================================================
@@ -511,6 +681,7 @@ function hideAll() {
   document.getElementById('selectionPage').classList.add('hidden');
   document.getElementById('markingPage').classList.add('hidden');
   document.getElementById('resultsPage').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
 }
 
 // === Zoom & Pan for image panels ===
