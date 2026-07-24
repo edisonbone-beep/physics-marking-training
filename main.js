@@ -367,19 +367,19 @@ function toggleAdminDetail(idx, btn) {
   btn.textContent = isHidden ? '-' : '+';
   if (isHidden) {
     var r = displayedResults[idx];
-    var html = '<table class="detail-table"><tr><th>Part</th><th>Your Mark</th><th>Official</th><th>Max</th><th>Match</th></tr>';
+    var html = '<table class="detail-table"><tr><th>Part</th><th>Your Mark</th><th>Official</th></tr>';
     if (r.results && Array.isArray(r.results)) {
       for (var qi = 0; qi < r.results.length; qi++) {
         var q = r.results[qi];
         var isMatch = q.officialMark !== null && q.officialMark !== undefined ? q.myMark === q.officialMark : null;
-        var icon = isMatch === null ? '-' : (isMatch ? '<span style="color:#27ae60;">&#10003;</span>' : '<span style="color:#e74c3c;">&#10007;</span>');
+        var color = isMatch === false ? '#e74c3c' : '#333';
         var bg = isMatch === false ? '#ffeaea' : 'transparent';
+        var maxStr = (q.maxMark !== null && q.maxMark !== undefined) ? q.maxMark : '?';
         html += '<tr style="background:' + bg + ';">';
         html += '<td style="font-weight:600;">' + q.label + '</td>';
-        html += '<td>' + q.myMark + '</td>';
-        html += '<td>' + (q.officialMark !== null && q.officialMark !== undefined ? q.officialMark : '-') + '</td>';
-        html += '<td>' + (q.maxMark !== null ? q.maxMark : '-') + '</td>';
-        html += '<td>' + icon + '</td></tr>';
+        html += '<td style="color:' + color + ';font-weight:600;">' + q.myMark + '/' + maxStr + '</td>';
+        html += '<td style="color:' + color + ';font-weight:600;">' + (q.officialMark !== null && q.officialMark !== undefined ? q.officialMark + '/' + maxStr : '-') + '</td>';
+        html += '</tr>';
       }
     }
     html += '</table>';
