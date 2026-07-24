@@ -61,67 +61,91 @@ function renderScriptButtons(p) {
   return html;
 }
 
+var ALL_SUBJECTS = [
+  { name: 'Physics', hasData: true },
+  { name: 'Mathematics', hasData: false },
+  { name: 'Chemistry', hasData: false },
+  { name: 'Biology', hasData: false },
+  { name: 'Economics', hasData: false }
+];
+var currentSubject = 'Physics';
+
 function renderSelection() {
+  // Render subject tabs
+  var tabsEl = document.getElementById('subjectTabs');
+  var tabsHtml = '';
+  for (var si = 0; si < ALL_SUBJECTS.length; si++) {
+    var s = ALL_SUBJECTS[si];
+    var cls = 'subject-tab';
+    if (s.name === currentSubject) cls += ' active';
+    if (!s.hasData) cls += ' disabled-tab';
+    tabsHtml += '<div class="' + cls + '" onclick="switchSubject(\'' + s.name + '\')">' + s.name + '</div>';
+  }
+  tabsEl.innerHTML = tabsHtml;
+
+  // Render content for current subject only
+  renderSubjectContent(currentSubject);
+}
+
+function switchSubject(name) {
+  var subj = null;
+  for (var i = 0; i < ALL_SUBJECTS.length; i++) {
+    if (ALL_SUBJECTS[i].name === name) { subj = ALL_SUBJECTS[i]; break; }
+  }
+  if (!subj || !subj.hasData) return;
+  currentSubject = name;
+  renderSelection();
+}
+
+function renderSubjectContent(subjName) {
   var container = document.getElementById('selectionContent');
   var html = '';
 
-  // All subjects in display order
-  var allSubjects = [
-    { name: 'Physics', hasData: true },
-    { name: 'Mathematics', hasData: false },
-    { name: 'Chemistry', hasData: false },
-    { name: 'Biology', hasData: false },
-    { name: 'Economics', hasData: false }
-  ];
+  var subj = null;
+  for (var i = 0; i < ALL_SUBJECTS.length; i++) {
+    if (ALL_SUBJECTS[i].name === subjName) { subj = ALL_SUBJECTS[i]; break; }
+  }
 
-  for (var si = 0; si < allSubjects.length; si++) {
-    var subj = allSubjects[si];
-    html += '<div class="subject-section">';
-    html += '<div class="subject-title">' + subj.name + '</div>';
+  if (!subj || !subj.hasData) {
+    html += '<div class="subject-card-placeholder"><p>Coming soon</p></div>';
+    container.innerHTML = html;
+    return;
+  }
 
-    if (!subj.hasData) {
-      html += '<div class="subject-card-placeholder"><p>Coming soon</p></div>';
-      html += '</div>';
-      continue;
-    }
+  // Group by category (IG/AL), then by paper number
+  var categories = {};
+  for (var pkey in PAPERS) {
+    var pinfo = PAPERS[pkey];
+    var pSubj = pinfo.subject.split(' ').pop();
+    if (pSubj !== subjName) continue;
+    var cat = pinfo.category;
+    var num = extractPaperNum(pinfo.paper);
+    if (!categories[cat]) categories[cat] = {};
+    if (!categories[cat][num]) categories[cat][num] = [];
+    categories[cat][num].push(Object.assign({ key: pkey }, pinfo));
+  }
 
-    // Group by category (IG/AL), then by paper number
-    var categories = {};
-    for (var pkey in PAPERS) {
-      var pinfo = PAPERS[pkey];
-      var pSubj = pinfo.subject.split(' ').pop();
-      if (pSubj !== subj.name) continue;
-      var cat = pinfo.category;
-      var num = extractPaperNum(pinfo.paper);
-      if (!categories[cat]) categories[cat] = {};
-      if (!categories[cat][num]) categories[cat][num] = [];
-      categories[cat][num].push(Object.assign({ key: pkey }, pinfo));
-    }
+  var catOrder = ['IG', 'AL'];
+  for (var ci = 0; ci < catOrder.length; ci++) {
+    var cat = catOrder[ci];
+    if (!categories[cat]) continue;
+    html += '<div class="category-section">';
+    html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' ' + subjName + '</div>';
 
-    var catOrder = ['IG', 'AL'];
-    for (var ci = 0; ci < catOrder.length; ci++) {
-      var cat = catOrder[ci];
-      if (!categories[cat]) continue;
-      html += '<div class="category-section">';
-      html += '<div class="category-title ' + cat.toLowerCase() + '">' + (cat === 'IG' ? 'IGCSE' : 'A-Level') + ' ' + subj.name + '</div>';
-
-      var paperNums = Object.keys(categories[cat]).sort();
-      for (var ni = 0; ni < paperNums.length; ni++) {
-        var num = paperNums[ni];
-        var papers = categories[cat][num];
-        html += '<div class="paper-num-heading">Paper ' + num + '</div>';
-        html += '<div class="papers-grid">';
-        for (var pi = 0; pi < papers.length; pi++) {
-          var p = papers[pi];
-          html += '<div class="paper-card">';
-          html += '<h3>' + p.subject + ' - ' + p.paper + '</h3>';
-          html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
-          html += renderScriptButtons(p);
-          html += '</div>';
-        }
+    var paperNums = Object.keys(categories[cat]).sort();
+    for (var ni = 0; ni < paperNums.length; ni++) {
+      var num = paperNums[ni];
+      var papers = categories[cat][num];
+      html += '<div class="paper-num-heading">Paper ' + num + '</div>';
+      html += '<div class="papers-grid">';
+      for (var pi = 0; pi < papers.length; pi++) {
+        var p = papers[pi];
+        html += '<div class="paper-card">';
+        html += '<h3>' + p.subject + ' - ' + p.paper + '</h3>';
+        html += '<div class="paper-sub">Full mark: ' + p.fullMark + ' | Scripts: ' + Object.keys(p.scripts).join(', ') + '</div>';
+        html += renderScriptButtons(p);
         html += '</div>';
       }
-
       html += '</div>';
     }
 
