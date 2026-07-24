@@ -309,7 +309,7 @@ async function loadAdminData(subjectFilter) {
   document.getElementById('statsGrid').innerHTML =
     '<div class="stat-card"><h3>Teachers</h3><div class="stat-value">' + userSet.size + '</div></div>' +
     '<div class="stat-card"><h3>Submissions</h3><div class="stat-value">' + displayedResults.length + '</div></div>' +
-    '<div class="stat-card"><h3>Avg Accuracy</h3><div class="stat-value">' + (totalQuestions > 0 ? accuracy + '%' : '-') + '</div></div>' +
+    '<div class="stat-card"><h3>Avg Accuracy <span class="info-icon">i<span class="tip-text">Matched question parts \u00f7 Total question parts (with official marks) \u00d7 100%. Counts every sub-question across all submissions where the teacher\'s mark exactly equals the official mark.</span></span></h3><div class="stat-value">' + (totalQuestions > 0 ? accuracy + '%' : '-') + '</div></div>' +
     '<div class="stat-card"><h3>Avg Time</h3><div class="stat-value">' + (displayedResults.length > 0 ? adminFormatTime(Math.round(displayedResults.reduce(function(s,r) { return s + r.time_taken; }, 0) / displayedResults.length)) : '-') + '</div></div>';
 
   if (displayedResults.length === 0) {
