@@ -81,7 +81,7 @@ function renderSelection() {
     var s = ALL_SUBJECTS[si];
     var cls = 'subject-tab';
     if (s.name === currentSubject) cls += ' active';
-    if (!s.hasData) cls += ' disabled-tab';
+    if (!s.hasData && !isAdmin) cls += ' disabled-tab';
     tabsHtml += '<div class="' + cls + '" onclick="switchSubject(\'' + s.name + '\')">' + s.name + '</div>';
   }
   // Admin gets a Dashboard tab
@@ -92,9 +92,13 @@ function renderSelection() {
   }
   tabsEl.innerHTML = tabsHtml;
 
-  // Render content for current subject only
-  if (currentSubject === 'Dashboard') {
-    renderDashboard();
+  // Render content: admin sees stats, teacher sees practice papers
+  if (isAdmin) {
+    if (currentSubject === 'Dashboard') {
+      renderDashboard();
+    } else {
+      renderSubjectStats(currentSubject);
+    }
   } else {
     renderSubjectContent(currentSubject);
   }
@@ -111,7 +115,8 @@ function switchSubject(name) {
   for (var i = 0; i < ALL_SUBJECTS.length; i++) {
     if (ALL_SUBJECTS[i].name === name) { subj = ALL_SUBJECTS[i]; break; }
   }
-  if (!subj || !subj.hasData) return;
+  if (!subj) return;
+  if (!subj.hasData && !isAdmin) return;
   currentSubject = name;
   renderSelection();
 }
@@ -120,18 +125,18 @@ function renderDashboard() {
   var container = document.getElementById('selectionContent');
   var html = '';
   html += '<div class="admin-header">';
-  html += '<h2>Admin Dashboard</h2>';
+  html += '<h2>Admin Dashboard - All Subjects</h2>';
   html += '<div>';
-  html += '<button class="secondary" onclick="loadAdminData()">Refresh</button>';
+  html += '<button class="secondary" onclick="loadAdminData(null)">Refresh</button>';
   html += '<button class="secondary" onclick="exportCSV()">Export CSV</button>';
   html += '<button onclick="adminLogout()">Logout</button>';
   html += '</div>';
   html += '</div>';
   html += '<div class="stats-grid" id="statsGrid"></div>';
-  html += '<h3 style="margin-bottom:12px;">All Results</h3>';
+  html += '<h3 style="margin-bottom:12px;">Results</h3>';
   html += '<div class="results-table" id="resultsTable"><div class="loading">Loading...</div></div>';
   container.innerHTML = html;
-  loadAdminData();
+  loadAdminData(null);
 }
 
 function renderSubjectContent(subjName) {
@@ -192,11 +197,37 @@ function renderSubjectContent(subjName) {
   container.innerHTML = html;
 }
 
+function renderSubjectStats(subjName) {
+  var container = document.getElementById('selectionContent');
+  var html = '';
+  html += '<div class="admin-header">';
+  html += '<h2>' + subjName + ' - Marking Statistics</h2>';
+  html += '<div>';
+  html += '<button class="secondary" onclick="loadAdminData(\'' + subjName + '\')">Refresh</button>';
+  html += '<button class="secondary" onclick="exportCSV()">Export CSV</button>';
+  html += '<button onclick="adminLogout()">Logout</button>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="stats-grid" id="statsGrid"></div>';
+  html += '<h3 style="margin-bottom:12px;">Results - ' + subjName + '</h3>';
+  html += '<div class="results-table" id="resultsTable"><div class="loading">Loading...</div></div>';
+  container.innerHTML = html;
+  loadAdminData(subjName);
+}
+
 // ============================================================
 // ADMIN PANEL
 // ============================================================
 var ADMIN_PWD = '123456';
 var allResults = [];
+var displayedResults = [];
+
+function getSubjectForPaper(paperKey) {
+  if (PAPERS[paperKey] && PAPERS[paperKey].subject) {
+    return PAPERS[paperKey].subject.split(' ').pop();
+  }
+  return null;
+}
 
 function doAdminLogin() {
   var pwd = document.getElementById('adminPwdInput').value;
@@ -230,7 +261,7 @@ function adminFormatTime(secs) {
   return m + 'm ' + s + 's';
 }
 
-async function loadAdminData() {
+async function loadAdminData(subjectFilter) {
   document.getElementById('resultsTable').innerHTML = '<div class="loading">Loading...</div>';
 
   if (!supabase) {
@@ -245,11 +276,24 @@ async function loadAdminData() {
   }
 
   allResults = resp.data || [];
-  var userSet = new Set(allResults.map(function(r) { return r.teacher_name; }));
+
+  // Filter by subject if requested
+  if (subjectFilter) {
+    displayedResults = [];
+    for (var fi = 0; fi < allResults.length; fi++) {
+      if (getSubjectForPaper(allResults[fi].paper) === subjectFilter) {
+        displayedResults.push(allResults[fi]);
+      }
+    }
+  } else {
+    displayedResults = allResults;
+  }
+
+  var userSet = new Set(displayedResults.map(function(r) { return r.teacher_name; }));
 
   var totalQuestions = 0, matchedQuestions = 0;
-  for (var ri = 0; ri < allResults.length; ri++) {
-    var r = allResults[ri];
+  for (var ri = 0; ri < displayedResults.length; ri++) {
+    var r = displayedResults[ri];
     if (r.results && Array.isArray(r.results)) {
       for (var qi = 0; qi < r.results.length; qi++) {
         var q = r.results[qi];
@@ -263,15 +307,20 @@ async function loadAdminData() {
   var accuracy = totalQuestions > 0 ? Math.round(matchedQuestions / totalQuestions * 100) : 0;
 
   document.getElementById('statsGrid').innerHTML =
-    '<div class="stat-card"><h3>Total Teachers</h3><div class="stat-value">' + userSet.size + '</div></div>' +
-    '<div class="stat-card"><h3>Total Submissions</h3><div class="stat-value">' + allResults.length + '</div></div>' +
-    '<div class="stat-card"><h3>Avg Accuracy</h3><div class="stat-value">' + accuracy + '%</div></div>' +
-    '<div class="stat-card"><h3>Avg Time</h3><div class="stat-value">' + (allResults.length > 0 ? adminFormatTime(Math.round(allResults.reduce(function(s,r) { return s + r.time_taken; }, 0) / allResults.length)) : '-') + '</div></div>';
+    '<div class="stat-card"><h3>Teachers</h3><div class="stat-value">' + userSet.size + '</div></div>' +
+    '<div class="stat-card"><h3>Submissions</h3><div class="stat-value">' + displayedResults.length + '</div></div>' +
+    '<div class="stat-card"><h3>Avg Accuracy</h3><div class="stat-value">' + (totalQuestions > 0 ? accuracy + '%' : '-') + '</div></div>' +
+    '<div class="stat-card"><h3>Avg Time</h3><div class="stat-value">' + (displayedResults.length > 0 ? adminFormatTime(Math.round(displayedResults.reduce(function(s,r) { return s + r.time_taken; }, 0) / displayedResults.length)) : '-') + '</div></div>';
+
+  if (displayedResults.length === 0) {
+    document.getElementById('resultsTable').innerHTML = '<div class="loading">No marking data for this subject yet</div>';
+    return;
+  }
 
   var tableHtml = '<table><tr><th></th><th>Teacher</th><th>Paper</th><th>Script</th><th>My Mark</th><th>Official</th><th>Full</th><th>Diff</th><th>Accuracy</th><th>Time</th><th>Date</th></tr>';
 
-  for (var idx = 0; idx < allResults.length; idx++) {
-    var r = allResults[idx];
+  for (var idx = 0; idx < displayedResults.length; idx++) {
+    var r = displayedResults[idx];
     var diff = r.official_total !== null && r.official_total !== undefined ? r.my_total - r.official_total : null;
     var diffHtml = '-';
     if (diff !== null) {
@@ -317,7 +366,7 @@ function toggleAdminDetail(idx, btn) {
   row.classList.toggle('hidden');
   btn.textContent = isHidden ? '-' : '+';
   if (isHidden) {
-    var r = allResults[idx];
+    var r = displayedResults[idx];
     var html = '<table class="detail-table"><tr><th>Part</th><th>Your Mark</th><th>Official</th><th>Max</th><th>Match</th></tr>';
     if (r.results && Array.isArray(r.results)) {
       for (var qi = 0; qi < r.results.length; qi++) {
@@ -339,10 +388,10 @@ function toggleAdminDetail(idx, btn) {
 }
 
 function exportCSV() {
-  if (allResults.length === 0) { alert('No data to export'); return; }
+  if (displayedResults.length === 0) { alert('No data to export'); return; }
   var csv = 'Teacher,Paper,Script,My Mark,Official,Full Mark,Diff,Accuracy,Time,Date\n';
-  for (var ri = 0; ri < allResults.length; ri++) {
-    var r = allResults[ri];
+  for (var ri = 0; ri < displayedResults.length; ri++) {
+    var r = displayedResults[ri];
     var diff = r.official_total !== null && r.official_total !== undefined ? r.my_total - r.official_total : '';
     var subTotal = 0, subMatch = 0;
     if (r.results && Array.isArray(r.results)) {
