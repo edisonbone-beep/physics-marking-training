@@ -20,6 +20,7 @@ var currentScript = null;
 var timerInterval = null;
 var timerSeconds = 0;
 var questionScores = {};
+var isAdmin = false;
 
 // ============================================================
 // LOGIN
@@ -28,6 +29,8 @@ function doLogin() {
   const name = document.getElementById('nameInput').value.trim();
   if (!name) { alert('Please enter your name'); return; }
   currentUser = name;
+  isAdmin = false;
+  currentSubject = 'Physics';
   showSelectionPage();
 }
 
@@ -81,13 +84,29 @@ function renderSelection() {
     if (!s.hasData) cls += ' disabled-tab';
     tabsHtml += '<div class="' + cls + '" onclick="switchSubject(\'' + s.name + '\')">' + s.name + '</div>';
   }
+  // Admin gets a Dashboard tab
+  if (isAdmin) {
+    var dcls = 'subject-tab dashboard-tab';
+    if (currentSubject === 'Dashboard') dcls += ' active';
+    tabsHtml += '<div class="' + dcls + '" onclick="switchSubject(\'Dashboard\')">Dashboard</div>';
+  }
   tabsEl.innerHTML = tabsHtml;
 
   // Render content for current subject only
-  renderSubjectContent(currentSubject);
+  if (currentSubject === 'Dashboard') {
+    renderDashboard();
+  } else {
+    renderSubjectContent(currentSubject);
+  }
 }
 
 function switchSubject(name) {
+  if (name === 'Dashboard') {
+    if (!isAdmin) return;
+    currentSubject = 'Dashboard';
+    renderSelection();
+    return;
+  }
   var subj = null;
   for (var i = 0; i < ALL_SUBJECTS.length; i++) {
     if (ALL_SUBJECTS[i].name === name) { subj = ALL_SUBJECTS[i]; break; }
@@ -95,6 +114,24 @@ function switchSubject(name) {
   if (!subj || !subj.hasData) return;
   currentSubject = name;
   renderSelection();
+}
+
+function renderDashboard() {
+  var container = document.getElementById('selectionContent');
+  var html = '';
+  html += '<div class="admin-header">';
+  html += '<h2>Admin Dashboard</h2>';
+  html += '<div>';
+  html += '<button class="secondary" onclick="loadAdminData()">Refresh</button>';
+  html += '<button class="secondary" onclick="exportCSV()">Export CSV</button>';
+  html += '<button onclick="adminLogout()">Logout</button>';
+  html += '</div>';
+  html += '</div>';
+  html += '<div class="stats-grid" id="statsGrid"></div>';
+  html += '<h3 style="margin-bottom:12px;">All Results</h3>';
+  html += '<div class="results-table" id="resultsTable"><div class="loading">Loading...</div></div>';
+  container.innerHTML = html;
+  loadAdminData();
 }
 
 function renderSubjectContent(subjName) {
@@ -161,24 +198,14 @@ function renderSubjectContent(subjName) {
 var ADMIN_PWD = '123456';
 var allResults = [];
 
-function showAdminLogin() {
-  document.getElementById('adminLoginOverlay').classList.remove('hidden');
-  document.getElementById('adminPwdInput').value = '';
-  document.getElementById('adminErrorMsg').classList.add('hidden');
-  document.getElementById('adminPwdInput').focus();
-}
-
-function hideAdminLogin() {
-  document.getElementById('adminLoginOverlay').classList.add('hidden');
-}
-
 function doAdminLogin() {
   var pwd = document.getElementById('adminPwdInput').value;
   if (pwd === ADMIN_PWD) {
-    hideAdminLogin();
-    hideAll();
-    document.getElementById('adminPage').classList.remove('hidden');
-    loadAdminData();
+    document.getElementById('adminErrorMsg').classList.add('hidden');
+    currentUser = 'Admin';
+    isAdmin = true;
+    currentSubject = 'Dashboard';
+    showSelectionPage();
   } else {
     document.getElementById('adminErrorMsg').classList.remove('hidden');
   }
@@ -189,6 +216,9 @@ document.getElementById('adminPwdInput').addEventListener('keypress', function(e
 });
 
 function adminLogout() {
+  isAdmin = false;
+  currentUser = null;
+  currentSubject = 'Physics';
   hideAll();
   document.getElementById('loginPage').classList.remove('hidden');
 }
@@ -743,7 +773,6 @@ function hideAll() {
   document.getElementById('selectionPage').classList.add('hidden');
   document.getElementById('markingPage').classList.add('hidden');
   document.getElementById('resultsPage').classList.add('hidden');
-  document.getElementById('adminPage').classList.add('hidden');
 }
 
 // === Zoom & Pan for image panels ===
