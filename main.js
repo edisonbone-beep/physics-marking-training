@@ -592,12 +592,25 @@ function showResults(saveData, mismatches, fbQuestions) {
   const pinfo = PAPERS[saveData.paper];
   const sinfo = pinfo.scripts[saveData.script];
 
-  // Left panel: student script images
-  let scriptHtml = '';
+  // Left panel: student script images with zoom
+  let scriptHtml = '<div class="panel-content">';
   for (const img of sinfo.images) {
     scriptHtml += `<img src="${img}" loading="lazy" alt="Script page">`;
   }
+  scriptHtml += '</div>';
+  scriptHtml += '<div class="zoom-controls"><button onclick="zoomPanel(\'resultsScript\',-1)">\u2212</button><span class="zoom-label" id="zoomLabel_resultsScript">100%</span><button onclick="zoomPanel(\'resultsScript\',1)">+</button><button onclick="zoomPanel(\'resultsScript\',0)" style="font-size:13px;">\u21BA</button></div>';
   document.getElementById('resultsScript').innerHTML = scriptHtml;
+  initZoomPan('resultsScript');
+
+  // Middle panel: mark scheme images with zoom
+  let msHtml = '<div class="panel-content">';
+  for (const img of pinfo.msImages) {
+    msHtml += `<img src="${img}" loading="lazy" alt="Mark scheme page">`;
+  }
+  msHtml += '</div>';
+  msHtml += '<div class="zoom-controls"><button onclick="zoomPanel(\'resultsMS\',-1)">\u2212</button><span class="zoom-label" id="zoomLabel_resultsMS">100%</span><button onclick="zoomPanel(\'resultsMS\',1)">+</button><button onclick="zoomPanel(\'resultsMS\',0)" style="font-size:13px;">\u21BA</button></div>';
+  document.getElementById('resultsMS').innerHTML = msHtml;
+  initZoomPan('resultsMS');
 
   // Right panel: summary + mismatched questions with feedback
   let html = `<div class="results-summary">`;
